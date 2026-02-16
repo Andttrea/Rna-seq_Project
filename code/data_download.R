@@ -20,3 +20,8 @@ assay(rse_gene_SRP057814, "counts") <- compute_read_counts(rse_gene_SRP057814)
 
 # Expand the SRA attributes and save the result in the colData slot of the RangedSummarizedExperiment object
 rse_gene_SRP057814 <- expand_sra_attributes(rse_gene_SRP057814) 
+
+
+# Save the RangedSummarizedExperiment object in an RDS file
+saveRDS(create_rse(proj_info), file = "raw-data/raw_rse_gene_SRP057814") # Raw RSE
+saveRDS(rse_gene_SRP057814, file = "processed-data/rse_gene_SRP057814") # Processed RSE
