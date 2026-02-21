@@ -5,7 +5,7 @@ library(recount3)
 human_project <- available_projects() 
 
 # I will use SRP127181 for the analysis because its samples represent a highly controlled experimental design
-# Also 
+# Also have various SRA attributes that we can use in the statistical model. 
 
 # Download the data and save it in a variable
 proj_info <- subset(human_project, project == "SRP127181" &  project_type == "data_sources")
