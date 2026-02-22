@@ -98,9 +98,16 @@ rse_gene_SRP127181_filtered <- rse_gene_SRP127181[keep, ]
 
 # Check the dimensions of the original and filtered data
 dim(rse_gene_SRP127181)
-
+# Output of the code above:
+# [1] 63856    27
 dim(rse_gene_SRP127181_filtered)
+# Output of the code above:
+# [1] 21272    27
 
+# Check the ratio of the number of genes in the original and filtered data
+round(nrow(rse_gene_SRP127181_filtered) / nrow(rse_gene_SRP127181) * 100, 2)
+# Output of the code above:
+# [1] 33.31
 
 
 
