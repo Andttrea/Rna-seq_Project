@@ -1,6 +1,9 @@
 # Load libraries
 library(recount3)
 library(edgeR)
+library(limma)
+library(variancePartition)
+library(ggplot2)
 
 # Save the variable SRE project data
 rse_gene_SRP127181 <- readRDS(file = "processed-data/rse_gene_SRP127181")
@@ -51,7 +54,7 @@ rse_gene_SRP127181$sra_attribute.source_name <- factor(rse_gene_SRP127181$sra_at
 
 # The variable sra_attribute.treatment_time has numeric characters, but have the word "hours" in it, so we will remove the word "hours" and then convert the data to numeric characters.
 rse_gene_SRP127181$sra_attribute.treatment_time <- gsub(" hours", "", rse_gene_SRP127181$sra_attribute.treatment_time)
-rse_gene_SRP127181$sra_attribute.treatment_time <- as.numeric(rse_gene_SRP127181$sra_attribute.treatment_time)
+rse_gene_SRP127181$sra_attribute.treatment_time <- factor(rse_gene_SRP127181$sra_attribute.treatment_time)
 
 # Checking the data of sra_attribute.treatment, it was notice that there was a typo in the word "ethanol", instead of "ethanol" it is written "ethonol".
 # The typo was known because searching in internet for "ethonol" does not give any quemical compound. 
@@ -108,6 +111,54 @@ dim(rse_gene_SRP127181_filtered)
 round(nrow(rse_gene_SRP127181_filtered) / nrow(rse_gene_SRP127181) * 100, 2)
 # Output of the code above:
 # [1] 33.31
+# This means that we have removed 66.69% of the genes from the original data, which is a good percentage of filtering, because we have removed the genes with very low levels of expression that are not informative for the analysis and can affect the results.
+
+# Normalizing the data
+# Note: Normalization is necessary to remove the technical variation in the data and to make the data comparable between samples. 
+
+# Note: The ColData is being used to map samples to metadata to link gene expression with experimental conditions for accurate statistical analysis.
+dge <- DGEList(counts = assay(rse_gene_SRP127181_filtered, "counts"), genes = rowData(rse_gene_SRP127181_filtered), samples = colData(rse_gene_SRP127181_filtered))
+dge <- calcNormFactors(dge)
+
+# Exploring the data with the variancePartition package to see how the different variables are affecting the variance of the data.
+# Transform the data to log2 counts per million (logCPM) to estabilish variance 
+# Note: VariancePartition requires the data to be in log2 counts per million (logCPM) format
+exp_log2 <- voom(dge)
+
+# Define the variables that we want to evaluate 
+# Note: Using the variable (1/variable) to evaluate the variance of each variable independently
+form_var <- ~ (1|sra_attribute.mutation_status) + (1|sra_attribute.treatment) + (1|(sra_attribute.treatment_time))
+
+# Calculate the partition of the variance 
+# vGene$E give the logCPM values of the data, form give the variables that we want to evaluate
+var_Part <- fitExtractVarPartModel(exp_log2$E, form_var, colData(rse_gene_SRP127181_filtered))
+
+# Plot the partition of the variance to see how the different variables are affecting the variance of the data.
+plotVarPart(sortCols(var_Part))
+# As we can see in the plot, the variable sra_attribute.mutation_status is the one that is affecting the variance of the data the most,
+# afecting around 50% of the variance, the other variables do not affect the variance of the data as much. 
+# To know more about the variance between the different variables, a PCA is been used 
+
+# Extract normalized counts using edgeR's cpm function
+counts_norm <- edgeR::cpm(dge, log = TRUE)
+
+# Perform PCA
+pca <- prcomp(t(counts_norm), scale. = TRUE)
+
+# Create data frame for plotting
+pca_df <- data.frame(  PC1 = pca$x[, 1], PC2 = pca$x[, 2],Mutation = rse_gene_SRP127181_filtered$sra_attribute.mutation_status)
+
+# Plot with color by mutation only
+ggplot(pca_df, aes(x = PC1, y = PC2, color = Mutation)) +
+geom_point(size = 4) +
+theme_bw() +
+labs(title = "PCA by Mutation Status", x = paste0("PC1 (", round(summary(pca)$importance[2, 1] * 100, 2), "%)"),y = paste0("PC2 (", round(summary(pca)$importance[2, 2] * 100, 2), "%)"))
+
+# It is noticed that the different mutation status are separated in the PCA plot, only the Wild Type is dividen in two groups, 
+# this could be due to another variable is affecting the variance of the data or to the batch effect.
+# To design our model matrix, it is being considered not only the variable sra_attribute.mutation_status, but also the variable sra_attribute.treatment_time because it is the second variable that is affecting the variance
+# This with the purpuse to have a goood model 
+
 
 
 
