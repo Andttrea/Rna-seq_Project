@@ -52,8 +52,8 @@ colData(rse_gene_SRP127181)[, grepl(
 rse_gene_SRP127181$sra_attribute.mutation_status <- factor(rse_gene_SRP127181$sra_attribute.mutation_status)
 rse_gene_SRP127181$sra_attribute.source_name <- factor(rse_gene_SRP127181$sra_attribute.source_name)
 
-# The variable sra_attribute.treatment_time has numeric characters, but have the word "hours" in it, so we will remove the word "hours" and then convert the data to numeric characters.
-rse_gene_SRP127181$sra_attribute.treatment_time <- gsub(" hours", "", rse_gene_SRP127181$sra_attribute.treatment_time)
+# The variable sra_attribute.treatment_time has numeric characters, but have the word "hours" in it. Por razones practicas y para poder 
+# realizar fitExtractVarPartModel más adelante lo dejaremos como un factor. igual que las anteriores variables
 rse_gene_SRP127181$sra_attribute.treatment_time <- factor(rse_gene_SRP127181$sra_attribute.treatment_time)
 
 # Checking the data of sra_attribute.treatment, it was notice that there was a typo in the word "ethanol", instead of "ethanol" it is written "ethonol".
@@ -160,5 +160,32 @@ labs(title = "PCA by Mutation Status", x = paste0("PC1 (", round(summary(pca)$im
 # This with the purpuse to have a goood model 
 
 
+# Antes de crear el modelo necesitamos reordenar los levels 
 
+# Note: Si observamos los levels de nuestra variable sra_attribute.mutation_status se observa lo sguiente:
+# levels(rse_gene_SRP127181$sra_attribute.mutation_status)
+#[1] "ESR1 D538G" "ESR1 WT"    "ESR1 Y537S"
+# Si se crea el modelo con ese orden en los levels, entonces tendríamos a nuestra mutación "ESR1 D538G" como base, que 
+# sería lo que se compararía con la mutación "ESR1 Y537S" y el WT. En este caso, sería más interesante observar
+# la diferencia entre el WT y las dos mutaciones, por lo que necesitariamos que "ESR1 WT" fuera nuestra base. 
 
+levels(rse_gene_SRP127181_filtered$sra_attribute.mutation_status)
+rse_gene_SRP127181_filtered$sra_attribute.mutation_status <- relevel(rse_gene_SRP127181_filtered$sra_attribute.mutation_status,"ESR1 WT","ESR1 D538G","ESR1 Y537S")
+# El orden de nuestros levels queda así: 
+# [1] "ESR1 WT"    "ESR1 D538G" "ESR1 Y537S"
+
+# Create model 
+mod <- model.matrix(~ sra_attribute.mutation_status + sra_attribute.treatment_time + assigned_gene_prop, data = colData(rse_gene_SRP127181_filtered))
+colnames(mod)
+# Output of the code above: 
+#[1] "(Intercept)"                             "sra_attribute.mutation_statusESR1 D538G" "sra_attribute.mutation_statusESR1 Y537S"
+#[4] "sra_attribute.treatment_time4"           "assigned_gene_prop"    
+
+# Note: Gracias a "sra_attribute.treatment_time4" nos podemos dar cuenta que el tiempo que usaron como referencia es de las 24 hrs, en este caso 
+# no lo reordenaremos 
+
+# Guardando variables en carpeta de processed-data para posterior uso 
+
+saveRDS(rse_gene_SRP127181_filtered, file = "processed-data/rse_gene_SRP127181_filtered")
+saveRDS(dge, file = "processed-data/dge")
+saveRDS(mod, file = "processed-data/model_matrix")
