@@ -1,5 +1,6 @@
 # Load libraries
 library(recount3)
+library(edgeR)
 
 # Save the variable SRE project data
 rse_gene_SRP127181 <- readRDS(file = "processed-data/rse_gene_SRP127181")
@@ -69,4 +70,37 @@ summary(rse_gene_SRP127181$assigned_gene_prop)
 # Note: It is been decided that the quality of the data is goood because the minimum value of the variable assigned_gene_prop is 0.7725, 
 # which means that at least 77.25% of the reads were assigned to a CDS.
 
-# Filter the data for 
+# Calculate the median levels of gene expression in our samples 
+gene_means <- rowMeans(assay(rse_gene_SRP127181, "counts"))
+summary(gene_means)
+# Output of the code above:
+# Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+#0.000e+00 0.000e+00 1.850e-01 5.463e+02 4.520e+01 2.655e+05 
+# It is notice that the mean of gene expression is higher than the median, which means that there are some genes with very high levels of expression that are affecting the mean.
+# Due to this, it is necessary to filter the data to remove the genes with very low levels of expression, because they are not informative for the analysis and can affect the results.
+
+# Filter the data
+# Note:We will use the function filterByExpr from the edgeR package 
+# to filter the data, which uses a method based on the counts per million (CPM) to filter the data.
+
+# Create a DGEList object with the data
+dge <- DGEList(counts = assay(rse_gene_SRP127181, "counts"))
+
+# Create a vector with the group information of the samples
+# Note: The group information is created by concatenating the variables sra_attribute.mutation_status, sra_attribute.treatment and sra_attribute.treatment_time, because these variables are the ones that we will use in the statistical model.
+group <- with(colData(rse_gene_SRP127181), paste0(sra_attribute.mutation_status, "_", sra_attribute.treatment, "_", sra_attribute.treatment_time))
+
+# Filter the data using the function filterByExpr
+keep <- filterByExpr(dge, group = group)
+
+# Filter the original RangedSummarizedExperiment 
+rse_gene_SRP127181_filtered <- rse_gene_SRP127181[keep, ]
+
+# Check the dimensions of the original and filtered data
+dim(rse_gene_SRP127181)
+
+dim(rse_gene_SRP127181_filtered)
+
+
+
+
