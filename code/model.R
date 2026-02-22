@@ -52,10 +52,21 @@ rse_gene_SRP127181$sra_attribute.source_name <- factor(rse_gene_SRP127181$sra_at
 rse_gene_SRP127181$sra_attribute.treatment_time <- gsub(" hours", "", rse_gene_SRP127181$sra_attribute.treatment_time)
 rse_gene_SRP127181$sra_attribute.treatment_time <- as.numeric(rse_gene_SRP127181$sra_attribute.treatment_time)
 
-# Checking the data of sra_attribute.treatment, I noticed that there is a typo in the word "ethanol", instead of "ethanol" it is written "ethonol".
-# I relize that "ethonol" was a typo because searching in internet for "ethonol" does not give any quemical compound. 
-# I decide to correct the typo and then convert the data to a factor like the other variables.
+# Checking the data of sra_attribute.treatment, it was notice that there was a typo in the word "ethanol", instead of "ethanol" it is written "ethonol".
+# The typo was known because searching in internet for "ethonol" does not give any quemical compound. 
+# Fix the typo and convert the data to factors.
 rse_gene_SRP127181$sra_attribute.treatment <- gsub("ethonol", "ethanol", rse_gene_SRP127181$sra_attribute.treatment)
 rse_gene_SRP127181$sra_attribute.treatment <- factor(rse_gene_SRP127181$sra_attribute.treatment)
  
+# Quality analysis of the data, using the variable assigned_gene_prop
+rse_gene_SRP127181$assigned_gene_prop <- rse_gene_SRP127181$recount_qc.gene_fc_count_all.assigned / rse_gene_SRP127181$recount_qc.gene_fc_count_all.total
+summary(rse_gene_SRP127181$assigned_gene_prop)
 
+# Outut of the code above:
+#  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.7725  0.7917  0.7984  0.7981  0.8073  0.8140
+# Due the quality of the data is good, is not necessary to remove any sample from the analysis. 
+# Note: It is been decided that the quality of the data is goood because the minimum value of the variable assigned_gene_prop is 0.7725, 
+# which means that at least 77.25% of the reads were assigned to a CDS.
+
+# Filter the data for 
