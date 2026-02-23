@@ -1,4 +1,5 @@
 # Finally, we will examine the treatment time variable to see if there are more genes expressed over time.
+
 # We perform the same process as we did for the mutationsGrison between Wild Type and Mutant D538G
 model <- readRDS(file = "processed-data/model_matrix")
 
@@ -18,9 +19,9 @@ DE_results_D538G <- topTable(
 dim(DE_results_D538G)
 # Output of the code above:
 # [1] 21272    27
-# Observamos que no perdimos ningún gen
+# We notice that we didn't lose any genes
 
-# Observamos DE_results
+# We observe DE_results
 head(DE_results_D538G)
 # Output of the code above:
 #                   source type bp_length phase           gene_id              gene_type     gene_name level
@@ -50,10 +51,11 @@ table(DE_results_D538G$adj.P.Val < 0.05)
 # Output of the code above:
 #FALSE  TRUE
 # 8123 13149
-# Se observa que hay 13149 genes que son significativamente diferentes entre el Wild Type y el Mutant D538G.
+# We observe that there are 13149 genes significantly different between Wild Type and Mutant D538G.
 
 # Create an MA plot
-plotMA(eb_results, coef = 2)
+plotMA_WT_D538G <- plotMA(eb_results, coef = 2)
+ggsave("plots/plotMA_WT_D538G.png", plot = plotMA_WT_D538G, dpi = 900, width = 11.25, height = 7.5)
 
 # Create a volcano plot, highlighting the 4 most significant genes
 volcanoplot(
@@ -63,8 +65,8 @@ volcanoplot(
   names = DE_results_D538G$gene_name
 )
 
-# Lo anterior solo fue hecho para la comparación entre el Wild Type y el Mutant D538G
-# Necesitaremos comparar la otra mutación Y537S con el Wild Type, para eso haremos lo mismo que hicimos para D538G
+# The above was only done for the comparison between Wild Type and Mutant D538G
+# We need to compare the other mutation Y537S with Wild Type, so we will do the same as we did for D538G
 
 DE_results_Y537S <- topTable(
   eb_results,
@@ -109,9 +111,8 @@ volcanoplot(
   highlight = 4,
   names = DE_results_Y537S$gene_name
 )
-
-# Por ultimo, observaremos la variable del tiempo de tratamiento, para ver si hay más genes expresados a través del tiempo.
-# Realizamos el mismo proceso que hicimos para las mutaciones
+# Finally, we will examine the treatment time variable to see if there are more genes expressed over time.
+# We perform the same process as we did for the mutations
 
 DE_results_time <- topTable(
   eb_results,
@@ -147,12 +148,7 @@ table(DE_results_time$adj.P.Val < 0.05)
 
 # Plots
 plotMA(eb_results, coef = 4)
-volcanoplot(
-  eb_results,
-  coef = 4,
-  highlight = 4,
-  names = DE_results_time$gene_name
-)
+volcanoplot(eb_results, coef = 4, highlight = 4, names = DE_results_time$gene_name,sort.by = "none" )
 
 # Finally, we will create a heatmap with the 50 most significant genes
 
@@ -161,24 +157,23 @@ volcanoplot(
 top_indices <- order(eb_results$F.p.value)[1:50]
 global_heatmap_matrix <- vGene$E[top_indices, ]
 
-# 2. Assign human-readable gene names to the rows
+# Assign human-readable gene names to the rows
 # Replacing Ensembl IDs with Gene Symbols for better interpretability
 rownames(global_heatmap_matrix) <- rse_gene_SRP127181_filtered$gene_name[
   top_indices
 ]
 
-# 3. Prepare sample metadata for the heatmap annotation
+# Prepare sample metadata for the heatmap annotation
+
 # We include all variables to see how they influence the clustering
 metadata_annotation <- as.data.frame(colData(rse_gene_SRP127181_filtered)[,
   c(
     "sra_attribute.mutation_status",
-    "sra_attribute.treatment_time",
-    "sra_attribute.treatment"
-  )
+    "sra_attribute.treatment_time")
 ])
 
 # Rename columns for a cleaner legend in the plot
-colnames(metadata_annotation) <- c("Mutation", "Time", "Treatment")
+colnames(metadata_annotation) <- c("Mutation", "Time")
 
 pheatmap(
   global_heatmap_matrix,
