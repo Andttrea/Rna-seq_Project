@@ -1,243 +1,214 @@
-# Análisis de Expresión Diferencial de Mutaciones en ESR1
+# Diferential Expression Analysis
 
-##  Interpretación de Resultados
+## Experimental Variables and Background
 
-### 1. Transformación voom: Relación Media-Varianza
+### Mutation Status (mutant_status)
+
+The variable `mutant_status` describes the genotype of the ESR1 (Estrogen Receptor Alpha)
+gene in the T47D breast cancer cell line used in this study. Three genotypes were analyzed:
+
+**ESR1 Wild Type (WT):**
+    The normal, unmutated form of the estrogen receptor alpha gene. In its
+    wild-type state, ESR1 encodes a ligand-dependent transcription factor
+    that requires estrogen binding to activate target gene expression.
+    WT ESR1 is the standard against which mutation effects are measured
+    in breast cancer research.
+
+**ESR1 Y537S:**
+    A somatic point mutation in the ligand-binding domain of ESR1, where
+    tyrosine (Y) at position 537 is replaced by serine (S). This mutation
+    stabilizes the active conformation of the receptor, resulting in
+    constitutive, estrogen-independent transcriptional activity. Y537S is
+    one of the two most frequent ESR1 mutations found in metastatic
+    ER-positive breast cancer and is associated with resistance to
+    endocrine therapies such as aromatase inhibitors.
+
+**ESR1 D538G:**
+    A somatic point mutation in the ligand-binding domain of ESR1, where
+    aspartic acid (D) at position 538 is replaced by glycine (G). Similar
+    to Y537S, this mutation confers ligand-independent activation of the
+    estrogen receptor, enabling constitutive gene expression without
+    estrogen. D538G is frequently detected in metastatic hormone
+    receptor-positive breast cancers that have acquired resistance to
+    standard endocrine treatments.
+
+### Treatment Conditions
+
+The experimental treatments consisted of ethanol as the vehicle control
+and 10 nM estrogen (E2) as the active treatment. Ethanol serves as
+the solvent in which estrogen is dissolved, so it is used as a baseline
+to distinguish the biological effects of estrogen from any solvent-related
+artifacts. Samples were collected at two time points: 4 hours and 24 hours
+after treatment, allowing the observation of both early and sustained
+transcriptional responses to estrogen across the different ESR1 genotypes.
+
+### Rationale
+
+Comparing wild-type and mutant ESR1 cells under both vehicle and estrogen
+conditions at different time points provides a framework to understand how
+these clinically relevant mutations reprogram the transcriptome. Since Y537S
+and D538G mutations confer estrogen-independent receptor activity, this design
+allows the identification of genes that are aberrantly activated by the mutant
+receptor even in the absence of hormone, and reveals how the transcriptional
+response to estrogen differs between normal and mutant receptor contexts.
+
+---
+
+## Dataset Description
+
+The data used in this analysis was obtained from the Sequence Read Archive
+project SRP127181 (GEO accession GSE108304). This dataset contains RNA-seq
+data from 27 human samples corresponding to the T47D breast cancer cell line
+and its genome-edited variants harboring ESR1 Y537S (TYS) and ESR1 D538G (TDG)
+mutations. Hormone-depleted cells were treated with either 10 nM estrogen or
+ethanol (vehicle control) for 4 or 24 hours, with 3 biological replicates per
+condition. Sequencing was performed on the Illumina HiSeq 4000 platform. After
+quality control and filtering of lowly expressed genes, 21,272 genes were retained
+for differential expression analysis using the limma-voom pipeline.
+
+---
+
+## Results
+
+### 1. Mean-Variance Trend (Voom Transformation)
 
 ![Mean-Variance Trend](plots/Mean_variance.svg)
 
-#### Interpretación Técnica
-La gráfica muestra la relación entre la media de expresión (log2 CPM) y la desviación estándar de cada gen tras la transformación voom. La línea roja representa la tendencia ajustada por voom, que modela la relación media-varianza para estabilizar la varianza y permitir el uso de modelos lineales en datos de conteos.
+The mean-variance plot displays the relationship between the average expression
+level of each gene (x-axis, in log2 counts per million) and its standard deviation
+(y-axis). This plot is generated during the voom transformation, which models
+the mean-variance relationship to assign precision weights to each observation,
+enabling the use of linear models on RNA-seq count data. The red curve represents
+the fitted trend that captures how variance changes with expression level.
 
-#### Interpretación Biológica
-- **Estabilización exitosa**: La transformación voom logra estabilizar efectivamente la varianza heteroscedástica típica de los datos de RNA-seq, donde genes de baja expresión presentan mayor variabilidad técnica.
-- **Calidad de los datos**: La distribución uniforme de los puntos alrededor de la tendencia indica que no hay sesgos técnicos importantes o efectos de batch que distorsionen la señal biológica.
-- **Rango dinámico**: Se observa un amplio rango de expresión (aproximadamente -5 a 15 log2 CPM), lo que refleja la diversidad transcriptómica de las células T47D y permite detectar tanto genes altamente expresados (housekeeping) como genes regulados de forma específica.
-
-Esta preparación adecuada de los datos es fundamental para garantizar la robustez estadística de las comparaciones subsecuentes entre genotipos y condiciones de tratamiento.
+In our data, the trend line shows a smooth decreasing pattern from left to right,
+indicating that lowly expressed genes exhibit higher variability while highly
+expressed genes show more stable variance. The points are evenly distributed around
+the fitted trend without major deviations, which confirms that the voom transformation
+successfully stabilized the variance across the full range of gene expression. This
+result indicates that the data is well-suited for downstream linear modeling and that
+no major technical artifacts or batch effects are distorting the analysis. The broad
+dynamic range observed (approximately -5 to 15 log2 CPM) reflects the transcriptomic
+diversity captured across the 27 samples.
 
 ---
 
-### 2. Comparación WT vs Mutante D538G
-
-#### 2.1. Gráfica MA: WT vs D538G
+### 2. MA Plot: WT vs D538G
 
 ![MA Plot WT vs D538G](plots/plotMA_WT_D538G.svg)
 
-#### Interpretación del MA Plot
+An MA plot visualizes differential expression by plotting the average expression of
+each gene (A, x-axis) against its log-fold change (M, y-axis) between two conditions.
+Genes centered around a log-fold change of zero show no difference between conditions,
+while genes displaced above or below zero are upregulated or downregulated, respectively.
+Red points indicate statistically significant genes (adjusted p-value < 0.05).
 
-La gráfica MA (M vs A, donde M = log-fold change y A = expresión media) visualiza la expresión diferencial entre células con ESR1 Wild Type y mutante D538G. Los puntos rojos representan genes diferencialmente expresados (FDR < 0.05).
-
-**Observaciones clave**:
-- **Magnitud del cambio**: Se observan cambios de expresión sustanciales, con logFC que alcanzan hasta ±4-5 en ambas direcciones, indicando alteraciones transcriptómicas profundas causadas por la mutación D538G.
-- **Distribución asimétrica**: Hay una tendencia hacia la regulación negativa (downregulation) en el mutante D538G, especialmente evidente en genes de expresión media-alta (A > 5). Esto sugiere que la mutación D538G puede alterar la capacidad transcripcional del receptor de estrógeno.
-- **Genes altamente expresados**: Los genes con mayor expresión media muestran cambios significativos, lo que indica que la mutación afecta a programas transcripcionales centrales de la célula, no solo a genes accesorios.
-
-#### Significancia Estadística
-- **Total de genes diferencialmente expresados**: **13,149 genes** (FDR < 0.05)
-- **Proporción afectada**: 61.8% del transcriptoma filtrado
-- **Implicación**: La mutación D538G causa una reprogramación transcriptómica masiva, alterando más de la mitad de los genes expresados.
-
-#### 2.2. Volcano Plot: WT vs D538G
-
-![Volcano Plot WT vs D538G](plots/volcano_WT_D538G.svg)
-
-#### Interpretación del Volcano Plot
-
-El volcano plot combina la significancia estadística (-log10 p-valor) con la magnitud del cambio biológico (log2 fold change). Los genes destacados representan los 4 genes más significativamente diferenciales.
-
-**Análisis de la distribución**:
-- **Simetría**: Aunque hay genes regulados tanto positiva como negativamente, se observa una ligera asimetría hacia la regulación negativa, confirmando las observaciones del MA plot.
-- **Genes altamente significativos**: Varios genes alcanzan valores de -log10(p-value) > 20-30, indicando diferencias extremadamente robustas y consistentes entre replicados.
-- **Spread del logFC**: El rango de log2 fold changes se extiende de aproximadamente -5 a +5, lo que representa cambios de hasta 32 veces en la expresión génica.
-
-#### Interpretación Biológica de la Mutación D538G
-
-La mutación **D538G** (sustitución de ácido aspártico por glicina en la posición 538) se localiza en el dominio de unión al ligando (LBD) del ESR1, específicamente en la hélice 12 (H12), crucial para:
-
-1. **Conformación constitutivamente activa**: La mutación D538G estabiliza la conformación agonista del receptor incluso en ausencia de estrógeno, resultando en actividad transcripcional ligando-independiente.
-
-2. **Alteración de la especificidad de co-reguladores**: La conformación alterada puede modificar el reclutamiento de co-activadores (como SRC-1, SRC-2) y co-represores, explicando la reprogramación transcriptómica masiva observada.
-
-3. **Resistencia a terapias endocrinas**: El receptor mutante D538G puede mantener la proliferación celular incluso en presencia de inhibidores de aromatasa (que reducen los niveles de estrógeno) o SERMs como tamoxifeno.
-
-4. **Selectividad alterada de elementos de respuesta a estrógeno (EREs)**: La mutación puede alterar la afinidad por diferentes secuencias ERE en el genoma, activando genes que normalmente no son targets del WT y reprimiendo otros, explicando el patrón asimétrico de expresión diferencial.
+In the comparison between ESR1 Wild Type and D538G mutant cells, the majority of genes
+cluster around a logFC of 0, as expected. However, a substantial number of genes show
+positive or negative fold changes, indicating widespread transcriptional reprogramming
+caused by the D538G mutation. A total of 13,149 genes were found to be differentially
+expressed (FDR < 0.05), representing approximately 61.8% of the analyzed transcriptome.
+This suggests that the D538G mutation induces broad alterations in gene expression,
+consistent with the constitutive activation of the estrogen receptor driving large-scale
+changes in downstream signaling pathways.
 
 ---
 
-### 3. Comparación WT vs Mutante Y537S
-
-#### 3.1. Gráfica MA: WT vs Y537S
+### 3. MA Plot: WT vs Y537S
 
 ![MA Plot WT vs Y537S](plots/plotMA_WT_Y537S.svg)
 
-#### Interpretación del MA Plot
+In the comparison between ESR1 Wild Type and Y537S mutant cells, the data follows a
+similar overall structure to the D538G comparison, with most genes centered at logFC
+of 0. Nevertheless, a large proportion of genes deviate from zero, indicating significant
+differential expression. The Y537S comparison identified 13,914 differentially expressed
+genes (FDR < 0.05), which is slightly more than the D538G comparison. This is consistent
+with published reports showing that Y537S exhibits a more pronounced and unique
+transcriptional phenotype compared to D538G. The spread of fold changes in both positive
+and negative directions indicates that the Y537S mutation both activates and represses
+distinct sets of genes relative to the wild-type receptor.
 
-Similar al análisis de D538G, este gráfico compara células WT con el mutante Y537S.
+---
 
-**Observaciones clave**:
-- **Patrón similar pero distinto a D538G**: Aunque ambas mutaciones causan cambios transcriptómicos extensos, el patrón de genes afectados difiere, sugiriendo mecanismos moleculares parcialmente distintos.
-- **Regulación negativa predominante**: Al igual que D538G, se observa una tendencia hacia la regulación negativa (downregulation), especialmente en genes de expresión media-alta.
-- **Distribución de logFC**: Los cambios de expresión son comparables en magnitud a los observados en D538G, con logFC que alcanzan ±4-5.
+### 4. MA Plot: Treatment Time (4h vs 24h)
 
-#### Significancia Estadística
-- **Total de genes diferencialmente expresados**: **13,914 genes** (FDR < 0.05)
-- **Proporción afectada**: 65.4% del transcriptoma filtrado
-- **Comparación con D538G**: Y537S afecta ~765 genes más que D538G, sugiriendo un efecto transcriptómico ligeramente más extenso.
+![MA Plot Treatment Time](plots/plotMA_time.svg)
 
-#### 3.2. Volcano Plot: WT vs Y537S
+This MA plot compares gene expression between the 4-hour and 24-hour treatment time
+points across all genotypes. The majority of genes are centered near logFC of 0,
+indicating that many genes maintain stable expression regardless of treatment duration.
+However, 5,614 genes were identified as differentially expressed between the two time
+points (FDR < 0.05). This is considerably fewer than the mutation comparisons, suggesting
+that while time influences transcriptional dynamics, the ESR1 mutation status has a
+stronger overall effect on gene expression. The genes showing time-dependent changes
+likely represent secondary estrogen response genes that require prolonged signaling
+to become activated or repressed.
+
+---
+
+### 5. Volcano Plot: WT vs D538G
+
+![Volcano Plot WT vs D538G](plots/volcano_WT_D538G.svg)
+
+A volcano plot combines statistical significance (y-axis, -log10 p-value) with biological
+effect size (x-axis, log2 fold change) to identify genes that are both statistically
+significant and biologically meaningful. Genes in the upper corners of the plot represent
+the most relevant candidates, as they have both large fold changes and high statistical
+confidence. The genes highlighted in blue represent the four most statistically significant
+genes in this comparison.
+
+In the WT vs D538G volcano plot, the distribution of points reveals a large number of genes with significant p-values on both sides of the fold-change axis, confirming the widespread transcriptional impact of the D538G mutation. Four genes are highlighted as the most statistically significant hits: PIP, UPK1A, and SDC2 are located on the left side of the plot, indicating they are significantly downregulated in D538G mutant cells, while MAGEB2 appears on the right side, indicating it is significantly upregulated.
+
+**PIP (Prolactin-Induced Protein)** is a well-established luminal breast cancer marker and estrogen-responsive gene; its downregulation may reflect a shift away from a differentiated luminal phenotype driven by the constitutive activation of the mutant receptor. **UPK1A (Uroplakin 1A)** is associated with epithelial integrity and its downregulation suggests alterations in epithelial identity and membrane-associated processes induced by the mutation. **SDC2 (Syndecan-2)**, a cell-surface heparan sulfate proteoglycan involved in cell–matrix interactions, adhesion, and growth factor signaling, is also suppressed, which may reflect a reorganization of the tumor microenvironment interactions in D538G mutant cells. In contrast, **MAGEB2 (Melanoma Antigen Family B2)**, a cancer-testis antigen, is significantly upregulated, consistent with its known roles in promoting oncogenic phenotypes including enhanced proliferation, immune evasion, and tumor aggressiveness.
+
+Together, the downregulation of PIP, UPK1A, and SDC2 alongside the upregulation of MAGEB2 supports a model in which the D538G mutation drives transcriptional reprogramming that promotes a more aggressive, ligand-independent tumor phenotype.
+
+---
+
+### 6. Volcano Plot: WT vs Y537S
 
 ![Volcano Plot WT vs Y537S](plots/volcano_WT_Y537S.svg)
 
-#### Interpretación del Volcano Plot
+The volcano plot for the **WT vs Y537S** comparison shows a broad distribution of differentially expressed genes, with many reaching very high statistical significance (−log₁₀ p-value > 20). Similar to the D538G comparison, genes are displaced in both directions along the fold change axis, but the Y537S mutation appears to produce an even more pronounced transcriptional shift. The four genes highlighted in blue represent the most statistically significant changes in this dataset: **UPK1A**, **NANOS1**, and **DNAJA4**, which are downregulated, and **BCHE**, which is markedly upregulated.
 
-**Análisis comparativo**:
-- **Mayor número de genes significativos**: Comparado con D538G, Y537S muestra más genes alcanzando altos niveles de significancia estadística.
-- **Distribución de fold changes**: Similar a D538G, pero con un patrón ligeramente diferente de genes específicos afectados.
-- **Genes destacados**: Los 4 genes marcados representan targets diferenciales clave que merecen validación experimental adicional.
+Among these, **UPK1A (Uroplakin 1A)** shows the strongest negative fold change, indicating substantial repression in **Y537S** mutant cells. Although classically associated with epithelial differentiation and membrane structure, its downregulation here may reflect alterations in epithelial identity and cell surface organization driven by constitutive ER signaling. **NANOS1**, an RNA-binding protein involved in post-transcriptional regulation and cell fate control, is also significantly suppressed, suggesting potential rewiring of RNA regulatory networks in the mutant context. **DNAJA4**, a member of the Hsp40 (DnaJ) chaperone family, participates in protein folding and stress response pathways; its downregulation may indicate altered proteostasis or stress adaptation mechanisms in Y537S cells.
 
-#### Interpretación Biológica de la Mutación Y537S
-
-La mutación **Y537S** (sustitución de tirosina por serina en la posición 537) también se localiza en la hélice 12 del dominio LBD:
-
-1. **Activación constitutiva con mayor potencia**: La mutación Y537S puede conferir mayor actividad basal que D538G, lo que explicaría el mayor número de genes diferencialmente expresados.
-
-2. **Alteración de interacciones hidrofóbicas**: La tirosina 537 es crucial para las interacciones hidrofóbicas que estabilizan la conformación inactiva del receptor. Su sustitución por serina (polar) desestabiliza el estado inactivo, favoreciendo la conformación activa.
-
-3. **Perfil clínico distinto**: Estudios clínicos sugieren que pacientes con diferentes mutaciones en ESR1 pueden responder de manera diferencial a terapias de segunda línea, lo que se correlaciona con los patrones transcriptómicos distintos observados.
-
-4. **Señalización no genómica**: La mutación puede alterar las funciones no genómicas del ESR1 (señalización rápida a través de kinasas), contribuyendo a la resistencia terapéutica.
+In contrast, **BCHE (Butyrylcholinesterase)** is highly upregulated and displays one of the strongest positive fold changes in the plot. Although not traditionally considered a canonical estrogen-responsive gene, BCHE overexpression has been reported in several malignancies and may reflect metabolic or microenvironmental adaptations associated with aggressive tumor phenotypes.
 
 ---
 
-### 4. Efecto del Tiempo de Tratamiento (4h vs 24h)
+### 7. Volcano Plot: Treatment Time (4h vs 24h)
 
-#### 4.1. Gráfica MA: Tratamiento a 4 horas vs 24 horas
+![Volcano Plot Treatment Time](plots/volcano_time.svg)
 
-![MA Plot Time](plots/plotMA_WT_D538G.svg)
+The volcano plot for the time comparison (4 hours vs. 24 hours as base) shows a more compact distribution compared to the mutation comparisons, with fewer genes reaching extreme statistical significance. This is consistent with the lower number of differentially expressed genes identified in this comparison (5,614). The four genes highlighted in blue represent the strongest time-dependent changes across all conditions. In this plot, where 24 hours serves as the reference group, **UPK1A** and **CGA** are located on the right side (positive fold change), indicating they are more highly expressed at 4 hours and subsequently downregulated as the treatment progresses to 24 hours. Conversely, **FGG** and **ANXA9** are on the left side (negative fold change), showing they are significantly upregulated at the 24-hour mark compared to the early 4-hour response.
 
-#### Interpretación
+The fact that **UPK1A** (Uroplakin 1A) and **CGA** (Glycoprotein Hormones Alpha Polypeptide) appear upregulated at 4h relative to 24h suggests they are "early-peak" genes. Their expression is rapidly induced by the initial stimulus but is not sustained, potentially due to negative feedback loops or the transient nature of early estrogen receptor (ER) recruitment to their promoters. On the other hand, the accumulation of **FGG (Fibrinogen Gamma Chain)** and **ANXA9 (Annexin A9)** at 24 hours points toward a late-stage transcriptional program. ANXA9, involved in calcium-dependent membrane signaling, may represent a secondary response that requires prolonged ER activity or the synthesis of intermediate transcription factors to reach its peak expression.
 
-El coeficiente del tiempo de tratamiento refleja diferencias en la respuesta transcriptómica temprana (4h) versus tardía (24h) al estrógeno.
-
-**Observaciones**:
-- **Menor número de genes afectados**: Solo **5,614 genes** son diferencialmente expresados (FDR < 0.05), representando el 26.4% del transcriptoma.
-- **Magnitud moderada de cambios**: Los logFC son generalmente menores que en las comparaciones de mutaciones, sugiriendo que el tiempo modula la respuesta pero no la redefine completamente.
-
-#### Significancia Estadística
-- **Genes DE**: 5,614 (26.4%)
-- **No DE**: 15,658 (73.6%)
-
-#### 4.2. Volcano Plot: Efecto Temporal
-
-![Volcano Plot Time](plots/volcano_time.svg)
-
-#### Interpretación Biológica del Efecto Temporal
-
-**Respuesta transcripcional bifásica al estrógeno**:
-
-1. **Genes de respuesta temprana (4h)**: Factores de transcripción inmediatos (immediate early genes), reguladores del ciclo celular, y genes de señalización que inician la respuesta proliferativa.
-
-2. **Genes de respuesta tardía (24h)**: Genes estructurales, metabolismo celular, enzimas biosintéticas, y genes de mantenimiento del fenotipo proliferativo.
-
-3. **Implicaciones para las mutaciones**: La respuesta temporal alterada en los mutantes puede indicar:
-   - Cinética de activación transcripcional alterada
-   - Sostenimiento prolongado de la señalización (resistencia a retroalimentación negativa)
-   - Activación prematura de genes de progresión del ciclo celular
-
-4. **Relevancia clínica**: La comprensión de la cinética transcripcional puede informar el diseño de regímenes terapéuticos con cronofarmacología optimizada.
+These time-responsive genes likely include estrogen-regulated genes that show a delayed transcriptional response, requiring sustained receptor signaling over 24 hours to reach full activation or repression. This temporal pattern is expected for secondary target genes that depend on intermediate transcription factors or chromatin remodeling events initiated by the early estrogen response. The dynamic behavior of UPK1A, which is suppressed by ESR1 mutations but shows a strong early-induction peak at 4 hours, highlights the complex temporal regulation of the ER-driven transcriptome and how the duration of signaling fundamentally shifts the cellular identity.
 
 ---
 
-### 5. Heatmap de los 50 Genes Más Diferencialmente Expresados
+### 8. Heatmap: Top 50 Differentially Expressed Genes
 
-![Heatmap Global](plots/heatmap_mutation_time.svg)
+![Heatmap](plots/heatmap_mutation_time.svg)
 
-#### Interpretación del Heatmap
+A heatmap represents gene expression values as a color gradient, where each row
+corresponds to a gene and each column to a sample. Colors indicate the relative
+expression level: red denotes upregulation and blue denotes downregulation, with values
+standardized per gene using Z-scores. Hierarchical clustering of both rows and columns
+groups genes and samples with similar expression patterns, revealing underlying
+biological structure in the data.
 
-Este heatmap integra los 50 genes con mayor significancia global (basado en el estadístico F del modelo completo), mostrando su patrón de expresión a través de todas las muestras, anotadas por mutación y tiempo de tratamiento.
+In our heatmap reveals a clear hierarchy in mutational potency, where the **Y537S** variant (green label) exerts the most profound and dominant impact on transcriptional reprogramming, displaying significantly more intense and defined red and blue color contrasts than the other conditions. For its part, the **D538G** mutation (pink label) also achieves constitutive activation of the estrogen receptor independent of the hormone, but with a slightly more moderate magnitude of change and expression profiles that, while similar, show distinct nuances in the saturation of the gene clusters. While **Y537S** stands out as the biochemically most potent and aggressive mutation by more effectively stabilizing the active conformation of the receptor, D538G represents an alternative pathway of resistance that, although visually less extreme, shares the ability to decouple tumor growth from estrogen, consolidating both as the primary drivers of the persistent oncogenic signaling observed across the expression blocks in the plot.
 
-#### Análisis de Clusters
-
-**Clustering de muestras (columnas)**:
-- **Separación clara por genotipo**: Las muestras se agrupan primero por estatus mutacional (WT, D538G, Y537S), confirmando que el genotipo es el principal driver de la varianza transcriptómica.
-- **Efecto secundario del tiempo**: Dentro de cada grupo mutacional, se observa sub-agrupamiento por tiempo de tratamiento, indicando que la respuesta temporal es significativa pero secundaria al efecto de la mutación.
-- **Consistencia entre replicados**: Los replicados biológicos se agrupan estrechamente, validando la reproducibilidad experimental y la robustez biológica de las diferencias observadas.
-
-**Clustering de genes (filas)**:
-
-1. **Cluster 1 - Genes sobre-expresados en WT**: 
-   - Posibles targets clásicos del ESR1 salvaje que son inactivados o regulados de forma aberrante en los mutantes.
-   - Pueden incluir genes de diferenciación mamaria, respuesta a estrógeno fisiológica, y reguladores negativos de la proliferación.
-
-2. **Cluster 2 - Genes sobre-expresados en mutantes**:
-   - Genes de proliferación celular, progresión del ciclo celular (ciclinas, CDKs)
-   - Genes anti-apoptóticos que confieren ventaja de supervivencia
-   - Posibles oncogenes activados aberrantemente por las conformaciones mutantes del ESR1
-
-3. **Cluster 3 - Genes con respuesta temporal**:
-   - Genes que muestran patrones de expresión dependientes del tiempo pero que difieren entre genotipos
-   - Pueden representar genes de respuesta primaria vs secundaria al estrógeno
-
-#### Interpretación Biológica Integrada
-
-**Significancia funcional de los top 50 genes**:
-
-1. **Reguladores del ciclo celular**: Genes como ciclinas (CCND1, CCNE1), CDKs, y reguladores de puntos de control pueden estar desregulados, explicando la proliferación aumentada en mutantes.
-
-2. **Factores de transcripción downstream**: MYC, FOXM1, E2F1 podrían estar sobre-expresados en mutantes, amplificando las señales proliferativas.
-
-3. **Genes de invasión y metástasis**: MMPs (metaloproteinasas), marcadores epitelial-mesenquimales que contribuyen al fenotipo más agresivo.
-
-4. **Metabolismo celular**: Genes glicolíticos, metabolismo de lípidos y aminoácidos que soportan el crecimiento celular aumentado.
-
-5. **Resistencia a apoptosis**: BCL2, BIRC5 (survivin) que confieren resistencia a señales de muerte celular inducidas por terapias.
 
 ---
 
-## Discusión General
+## Conclusions
 
-### Mecanismos de Resistencia Endocrina
+The differential expression analysis of ESR1 wild-type, Y537S, and D538G mutant T47D breast cancer cells reveals that both mutations cause extensive transcriptional reprogramming, affecting over 60% of the expressed transcriptome. The Y537S mutation produces a slightly broader transcriptional impact (13,914 DE genes) compared to D538G (13,149 DE genes), consistent with previous reports suggesting that Y537S may exhibit a more distinct and aggressive molecular phenotype. Both mutations appear to constitutively influence classical estrogen target genes involved in cell proliferation, survival, and breast cancer progression, even in the absence of estrogen.
 
-Los resultados de este análisis de RNA-seq proporcionan evidencia molecular robusta de los mecanismos por los cuales las mutaciones D538G y Y537S en ESR1 confieren resistencia a las terapias endocrinas:
+The treatment time comparison identifies a smaller but relevant set of 5,614 time-responsive genes, indicating that mutation status is likely the primary driver of transcriptomic variation, while temporal estrogen signaling may act as a secondary modulatory factor. The heatmap analysis shows that ESR1 mutant cells cluster distinctly from wild-type cells, suggesting a fundamental shift in gene regulatory programs associated with these clinically relevant mutations.
 
-#### 1. Actividad Transcripcional Constitutiva
-- Ambas mutaciones causan reprogramación transcriptómica masiva (>60% del transcriptoma)
-- La magnitud y extensión de los cambios sugiere actividad ligando-independiente del receptor
-- Esto explica por qué los inhibidores de aromatasa (que reducen estrógeno endógeno) son inefectivos
-
-#### 2. Especificidad Alterada de Targets Génicos
-- Los patrones distintos entre D538G y Y537S (13,149 vs 13,914 genes DE) sugieren que cada mutación altera la especificidad de unión a ADN o el reclutamiento de co-reguladores de forma única
-- Esto puede explicar diferencias clínicas en la respuesta a terapias de segunda línea
-
-#### 3. Desacoplamiento de la Respuesta Temporal
-- El efecto temporal relativamente menor (5,614 genes) comparado con el efecto de mutación sugiere que los mutantes tienen cinética de respuesta alterada
-- Posible activación sostenida que evade mecanismos de retroalimentación negativa
-
----
-
-## Conclusiones
-
-1. **Las mutaciones D538G y Y537S causan reprogramación transcriptómica masiva**, afectando >60% del transcriptoma de células de cáncer de mama T47D.
-
-2. **Cada mutación tiene un perfil transcriptómico distintivo**, con Y537S mostrando mayor número de genes diferencialmente expresados (13,914 vs 13,149), sugiriendo mecanismos moleculares parcialmente distintos.
-
-3. **El efecto temporal es secundario al efecto mutacional**, indicando que las mutaciones alteran fundamentalmente la respuesta celular al estrógeno más allá de simples diferencias de timing.
-
-4. **Los genes más afectados incluyen reguladores clave del ciclo celular, proliferación, supervivencia y metabolismo**, proporcionando bases moleculares para el fenotipo de resistencia endocrina y crecimiento aumentado.
-
-5. **Implicaciones terapéuticas claras**: Los perfiles transcriptómicos sugieren vulnerabilidades terapéuticas específicas (degradadores de ER, inhibidores de CDK4/6, targets downstream) que pueden ser explotadas clínicamente.
-
-6. **Base para medicina de precisión**: La caracterización molecular detallada de cada mutante puede guiar estrategias terapéuticas personalizadas en pacientes con cáncer de mama ER+ resistente a terapias endocrinas.
-
----
-
-## Referencias Clave
-
-1. **Toy et al. (2013)** - Nature Genetics: Identificación inicial de mutaciones ESR1 en cáncer de mama metastásico
-2. **Robinson et al. (2013)** - Nature Genetics: Caracterización estructural de mutantes ESR1
-3. **Jeselsohn et al. (2018)** - Cancer Discovery: Consecuencias funcionales de mutaciones ESR1
-4. **Arnesen et al. (2021)** - Nature Communications: Perfiles transcriptómicos de mutantes ESR1
-5. **Bidard et al. (2022)** - Journal of Clinical Oncology: Utilidad clínica de detección de mutaciones ESR1 en ctDNA
-
-
+Together, these findings support the possibility that ESR1 ligand-binding domain mutations Y537S and D538G contribute to endocrine therapy resistance in metastatic ER-positive breast cancer through sustained, ligand-independent transcriptional activity. This transcriptional rewiring may have important implications for the development of therapeutic strategies aimed at targeting mutant-specific estrogen receptor signaling.
