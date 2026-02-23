@@ -1,7 +1,13 @@
-# Finally, we will examine the treatment time variable to see if there are more genes expressed over time.
+# Load libraries
+library(limma)
+library(ggplot2)
+library(pheatmap)
 
-# We perform the same process as we did for the mutationsGrison between Wild Type and Mutant D538G
+# Save the variables we will use 
 model <- readRDS(file = "processed-data/model_matrix")
+dge <- readRDS(file = "processed-data/dge")
+rse_gene_SRP127181_filtered <- readRDS(file = "processed-data/rse_gene_SRP127181_filtered")
+
 
 # Voom transformation
 vGene <- voom(dge, model, plot = TRUE)
@@ -55,7 +61,6 @@ table(DE_results_D538G$adj.P.Val < 0.05)
 
 # Create an MA plot
 plotMA_WT_D538G <- plotMA(eb_results, coef = 2)
-ggsave("plots/plotMA_WT_D538G.png", plot = plotMA_WT_D538G, dpi = 900, width = 11.25, height = 7.5)
 
 # Create a volcano plot, highlighting the 4 most significant genes
 volcanoplot(
@@ -148,12 +153,11 @@ table(DE_results_time$adj.P.Val < 0.05)
 
 # Plots
 plotMA(eb_results, coef = 4)
-volcanoplot(eb_results, coef = 4, highlight = 4, names = DE_results_time$gene_name,sort.by = "none" )
+volcanoplot(eb_results, coef = 4, highlight = 4, names = DE_results_time$gene_name)
 
 # Finally, we will create a heatmap with the 50 most significant genes
 
 # Select the top 50 genes with the lowest overall p-value (F-statistic)
-# eb_results$F.p.value tests if ANY coefficient in the model is non-zero
 top_indices <- order(eb_results$F.p.value)[1:50]
 global_heatmap_matrix <- vGene$E[top_indices, ]
 
