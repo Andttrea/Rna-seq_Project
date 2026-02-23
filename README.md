@@ -1,6 +1,6 @@
 ## Introduction
 
-This project analyzes RNA-seq data from study **SRP127181** to understand how activating mutations in the estrogen receptor alpha (ESR1/ERa) affect the transcriptional response to estrogen in T47D cells (ER+ breast cancer). Specifically, it compares D538G and Y537S mutations against Wild Type at two time points (4 and 24 hours).
+This project analyzes RNA-seq data from study `SRP127181` to understand how activating mutations in the estrogen receptor alpha (ESR1/ERa) affect the transcriptional response to estrogen in T47D cells (ER+ breast cancer). Specifically, it compares D538G and Y537S mutations against Wild Type at two time points (4 and 24 hours).
 
 
 ## Project Structure
@@ -26,16 +26,16 @@ Rna-seq_Project/
 ```
 
 You can navigate directly to the folders here:
-- [code/](code/)
-- [plots/](plots/)
-- [processed-data/](processed-data/)
-- [raw-data/](raw-data/)
+- [`code/`](code/)
+- [`plots/`](plots/)
+- [`processed-data/`](processed-data/)
+- [`raw-data/`](raw-data/)
 
 ## Scripts (brief description)
 
-- [code/data_download.R](code/data_download.R) - Data download using recount3 and saving to raw-data.
-- [code/model.R](code/model.R) - Preparation of the expression object, filtering, normalization, and statistical modeling.
-- [code/DE_plots.R](code/DE_plots.R) - Generation of figures and differential analysis plots.
+- [`code/data_download.R`](code/data_download.R) - Data download using recount3 and saving to raw-data.
+- [`code/model.R`](code/model.R) - Preparation of the expression object, filtering, normalization, and statistical modeling.
+- [`code/DE_plots.R`](code/DE_plots.R) - Generation of figures and differential analysis plots.
 
 Note: The project was based on the [LieberInstitute/template_project](https://github.com/LieberInstitute/template_project) template.
 
@@ -76,4 +76,5 @@ BiocManager::install(c("recount3", "edgeR", "limma", "variancePartition"))
 
 ---
 
-The interpretation of the plots and findings can be found in [Results.md](Results.md).
+The interpretation of the plots and findings can be found in [`Results.md`](Results.md)
+
