@@ -212,3 +212,20 @@ The differential expression analysis of ESR1 wild-type, Y537S, and D538G mutant 
 The treatment time comparison identifies a smaller but relevant set of 5,614 time-responsive genes, indicating that mutation status is likely the primary driver of transcriptomic variation, while temporal estrogen signaling may act as a secondary modulatory factor. The heatmap analysis shows that ESR1 mutant cells cluster distinctly from wild-type cells, suggesting a fundamental shift in gene regulatory programs associated with these clinically relevant mutations.
 
 Together, these findings support the possibility that ESR1 ligand-binding domain mutations Y537S and D538G contribute to endocrine therapy resistance in metastatic ER-positive breast cancer through sustained, ligand-independent transcriptional activity. This transcriptional rewiring may have important implications for the development of therapeutic strategies aimed at targeting mutant-specific estrogen receptor signaling.
+
+---
+
+## References
+
+Jeselsohn, R., Buchwalter, G., De Angelis, C., Brown, M., & Schiff, R. (2015). ESR1 mutations—a mechanism for acquired endocrine resistance in breast cancer. Nature reviews. Clinical oncology, 12(10), 573–583. https://doi.org/10.1038/nrclinonc.2015.117 
+
+Toy, W., Shen, Y., Won, H., Green, B., Sakr, R. A., Will, M., Li, Z., Gala, K., Fanning, S., King, T. A., Hudis, C., Chen, D., Taran, T., Hortobagyi, G., Greene, G., Berger, M., Baselga, J., & Chandarlapaty, S. (2013). ESR1 ligand-binding domain mutations in hormone-resistant breast cancer. Nature genetics, 45(12), 1439–1445. https://doi.org/10.1038/ng.2822
+
+Sean W Fanning, Christopher G Mayne, Venkatasubramanian Dharmarajan, Kathryn E Carlson, Teresa A Martin, Scott J Novick, Weiyi Toy, Bradley Green, Srinivas Panchamukhi, Benita S Katzenellenbogen, Emad Tajkhorshid, Patrick R Griffin, Yang Shen, Sarat Chandarlapaty, John A Katzenellenbogen, Geoffrey L Greene (2016) Estrogen receptor alpha somatic mutations Y537S and D538G confer breast cancer endocrine resistance by stabilizing the activating function-2 binding conformation eLife 5:e12792 
+    
+
+Yu, L., Wang, L., Mao, C., Duraki, D., Kim, J. E., Huang, R., Helferich, W. G., Nelson, E. R., Park, B. H., & Shapiro, D. J. (2019). Estrogen-independent Myc overexpression confers endocrine therapy resistance on breast cancer cells expressing ERαY537S and ERαD538G mutations. Cancer letters, 442, 373–382. https://doi.org/10.1016/j.canlet.2018.10.041 
+
+
+
+---
